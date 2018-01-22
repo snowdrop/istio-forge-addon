@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import io.fabric8.forge.kubernetes.AbstractKubernetesCommand;
 import io.fabric8.kubernetes.api.KubernetesHelper;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.Config;
@@ -24,8 +25,6 @@ import me.snowdrop.istio.client.IstioClientFactory;
 import org.jboss.forge.addon.projects.Project;
 import org.jboss.forge.addon.projects.ProjectFactory;
 import org.jboss.forge.addon.projects.Projects;
-import org.jboss.forge.addon.projects.ui.AbstractProjectCommand;
-import org.jboss.forge.addon.ui.command.UICommand;
 import org.jboss.forge.addon.ui.context.UIBuilder;
 import org.jboss.forge.addon.ui.context.UIContext;
 import org.jboss.forge.addon.ui.context.UIExecutionContext;
@@ -40,19 +39,15 @@ import org.jboss.forge.addon.ui.util.Metadata;
 /**
  * @author <a href="claprun@redhat.com">Christophe Laprun</a>
  */
-public class GenerateRouteRuleCommand extends AbstractProjectCommand implements UICommand {
+public class GenerateRouteRuleCommand extends AbstractKubernetesCommand {
 
     public static String CATEGORY = "Istio";
 
     private static final String namespace = "istio-system";
-    private IstioClient client;
+    private IstioClient istioClient;
 
     @Inject
     private ProjectFactory projectFactory;
-
-    @Inject
-    @WithAttributes(name = "kubernetesUrl", label = "The URL where the Kubernetes master is running")
-    UIInput<String> kubernetesUrl;
 
     @Inject
     @WithAttributes(required = true, name = "name", label = "The base name for the RouteRule")
@@ -80,7 +75,7 @@ public class GenerateRouteRuleCommand extends AbstractProjectCommand implements 
 
         // populate autocompletion options
         destinationName.setCompleter((context, input, value) -> {
-            final ServiceList services = getClient().getKubernetesClient().services().list();
+            final ServiceList services = getKubernetes().services().list();
             if (services != null) {
                 return services.getItems().stream()
                         .map(KubernetesHelper::getName)
@@ -91,7 +86,6 @@ public class GenerateRouteRuleCommand extends AbstractProjectCommand implements 
             return Collections.emptyList();
         });
 
-        builder.add(kubernetesUrl);
         builder.add(name);
         builder.add(generate);
     }
@@ -101,9 +95,9 @@ public class GenerateRouteRuleCommand extends AbstractProjectCommand implements 
     }
 
 
-    public IstioClient getClient() {
-        if (client == null) {
-            final String kubernetesAddress = kubernetesUrl.getValue();
+    public IstioClient getIstioClient() {
+        if (istioClient == null) {
+            final String kubernetesAddress = getKubernetes().getMasterUrl().toExternalForm();
             // create an OpenShift client to connect to the cluster
             Config config = new ConfigBuilder()
                     .withMasterUrl(kubernetesAddress)
@@ -111,10 +105,10 @@ public class GenerateRouteRuleCommand extends AbstractProjectCommand implements 
                     .withPassword("admin")
                     .withNamespace("istio-system")
                     .build();
-            client = IstioClientFactory.defaultClient(config);
+            istioClient = IstioClientFactory.defaultClient(config);
         }
-        Objects.notNull(client, "Istio client");
-        return client;
+        Objects.notNull(istioClient, "Istio client");
+        return istioClient;
     }
 
     @Override
@@ -145,7 +139,7 @@ public class GenerateRouteRuleCommand extends AbstractProjectCommand implements 
                 .endRouteRuleSpec()
                 .build();
 
-        return Results.success("RouteRule " + name + "created", getClient().registerCustomResource(resource));
+        return Results.success("RouteRule " + name + "created", getIstioClient().registerCustomResource(resource));
     }
 
     @Override
