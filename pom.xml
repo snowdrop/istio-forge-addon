@@ -62,8 +62,9 @@
   <dependencies>
     <dependency>
       <groupId>me.snowdrop</groupId>
-      <artifactId>istio-client</artifactId>
-      <version>0.7</version>
+      <artifactId>istio-client-uberjar</artifactId>
+      <version>0.8-SNAPSHOT</version>
+      <classifier>versioned</classifier>
       <scope>compile</scope>
     </dependency>
     <dependency>
