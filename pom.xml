@@ -63,9 +63,8 @@
     <dependency>
       <groupId>me.snowdrop</groupId>
       <artifactId>istio-client</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.7</version>
       <scope>compile</scope>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.jboss.forge.furnace.container</groupId>
@@ -74,12 +73,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>javax.annotation</groupId>
-      <artifactId>jsr250-api</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.jboss.forge.addon</groupId>
-      <artifactId>core</artifactId>
+      <artifactId>ui</artifactId>
       <classifier>forge-addon</classifier>
     </dependency>
     <dependency>
